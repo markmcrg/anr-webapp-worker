@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+/anr-webapp-worker-venv
 
 # C extensions
 *.so
