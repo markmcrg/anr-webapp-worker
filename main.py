@@ -1,6 +1,7 @@
 from b2sdk.v2 import InMemoryAccountInfo, B2Api
 from tabulate import tabulate  # For table formatting
-import schedule  # Placeholder for scheduling
+import schedule  # For scheduling
+import threading
 import time
 import datetime
 import os
@@ -49,9 +50,24 @@ def job():
     delete_empty_files(bucket)
 
 
+def listen_for_force_delete():
+    """Listen for user input to trigger an immediate cleanup."""
+    bucket = authenticate_b2('anr-webapp')
+    while True:
+        user_input = input("Type 'force' to delete 0-byte files immediately: ").strip().lower()
+        if user_input == 'force':
+            print("Force delete triggered.")
+            delete_empty_files(bucket)
+
+
 # Schedule the job to run every 10 minutes
 schedule.every(10).minutes.do(job)
 
+# Start the force-delete listener in a separate thread
+listener_thread = threading.Thread(target=listen_for_force_delete, daemon=True)
+listener_thread.start()
+
+# Run the scheduled job loop
 print("Scheduled job started. Waiting for execution...")
 while True:
     schedule.run_pending()
